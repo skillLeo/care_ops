@@ -1,0 +1,23 @@
+// Fonts
+@import url('https://fonts.bunny.net/css?family=Nunito');
+
+// Variables
+@import 'variables';
+
+// Bootstrap
+@import 'bootstrap/scss/bootstrap';
+
+// iOS sidebar fixes for AdminLTE
+@supports (-webkit-touch-callout: none) {
+  .main-sidebar {
+    height: 100dvh;
+  }
+
+  .main-sidebar .sidebar {
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .main-sidebar .brand-link {
+    display: none;
+  }
+}

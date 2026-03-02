@@ -1,0 +1,66 @@
+@extends('adminlte::page')
+
+@section('title', 'Upload Documents')
+
+@section('content_header')
+    <h1>Upload Documents</h1>
+@stop
+
+@section('content')
+    @include('partials.flash')
+
+    <div class="card">
+        <div class="card-body">
+            <form action="{{ route('documents.store') }}" method="POST" enctype="multipart/form-data">
+                @csrf
+
+                <div class="form-group">
+                    <label for="title">Title (optional)</label>
+                    <input type="text" name="title" id="title" class="form-control" value="{{ old('title') }}">
+                </div>
+
+                <div class="form-group">
+                    <label for="description">Description (optional)</label>
+                    <textarea name="description" id="description" class="form-control" rows="3">{{ old('description') }}</textarea>
+                </div>
+
+                <div class="form-group">
+                    <label>Visible to Roles</label>
+                    <div class="row">
+                        @foreach ($roles as $role)
+                            <div class="col-md-4">
+                                <div class="form-check">
+                                    <input class="form-check-input" type="checkbox" name="roles[]" id="role_{{ $role->id }}" value="{{ $role->id }}"
+                                        {{ in_array($role->id, old('roles', []), true) ? 'checked' : '' }}>
+                                    <label class="form-check-label" for="role_{{ $role->id }}">
+                                        {{ $role->display_name }}
+                                    </label>
+                                </div>
+                            </div>
+                        @endforeach
+                    </div>
+                    @error('roles')
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="form-group">
+                    <label for="documents">Files</label>
+                    <input type="file" name="documents[]" id="documents" class="form-control" multiple>
+                    <small class="form-text text-muted">You can select multiple files at once.</small>
+                    @error('documents')
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                    @error('documents.*')
+                        <span class="text-danger">{{ $message }}</span>
+                    @enderror
+                </div>
+
+                <div class="d-flex justify-content-end">
+                    <a href="{{ route('documents.index') }}" class="btn btn-secondary mr-2">Cancel</a>
+                    <button type="submit" class="btn btn-primary">Upload</button>
+                </div>
+            </form>
+        </div>
+    </div>
+@stop
