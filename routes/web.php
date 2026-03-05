@@ -65,6 +65,8 @@ Route::middleware(['auth'])->group(function () {
 
     Route::post('/profile/password', [ProfileController::class, 'updatePassword'])
         ->name('profile.password');
+                    Route::post('/profile/pin', [ProfileController::class, 'updatePin'])->name('profile.pin');
+
 });
 Route::get('intake', [DropboxSubmissionController::class, 'showIntake'])->name('dropbox.intake');
 
