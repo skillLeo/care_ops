@@ -52,12 +52,15 @@ use App\Http\Controllers\ChartAuditRandomizerController;
 use App\Http\Controllers\ClinicalNotesController;
 use App\Http\Controllers\SubmissionDuplicateController;
 use App\Http\Controllers\UaRandomizerController;
+use App\Http\Controllers\TeamsController;
 
 
 
 
 
 use App\Http\Controllers\ProfileController;
+
+ Route::get('/tabs/home', [TeamsController::class, 'index'])->name('tabs.home');
 
 Route::middleware(['auth'])->group(function () {
     Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
