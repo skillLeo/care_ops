@@ -53,6 +53,19 @@ use App\Http\Controllers\ClinicalNotesController;
 use App\Http\Controllers\SubmissionDuplicateController;
 use App\Http\Controllers\UaRandomizerController;
 
+
+
+
+
+use App\Http\Controllers\ProfileController;
+
+Route::middleware(['auth'])->group(function () {
+    Route::get('/profile', [ProfileController::class, 'edit'])->name('profile.edit');
+    Route::post('/profile', [ProfileController::class, 'update'])->name('profile.update');
+
+    Route::post('/profile/password', [ProfileController::class, 'updatePassword'])
+        ->name('profile.password');
+});
 Route::get('intake', [DropboxSubmissionController::class, 'showIntake'])->name('dropbox.intake');
 
 Route::get('dropbox/intake/{type?}', function (?string $type = null) {

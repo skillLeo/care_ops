@@ -64,12 +64,17 @@ return [
     */
 
     'logo' => '',
-    'logo_img' => 'img/logo-with-text-small.png',
-    'logo_img_class' => 'brand-image',
-    'logo_img_xl' => null,
-    // 'logo_img_xl_class' => 'brand-image-xs',
-    'logo_img_alt' => '',
 
+/* Collapsed (icon) */
+'logo_img' => 'img/small-image-logo.png',
+'logo_img_class' => 'brand-image snb-logo-icon',
+
+/* Expanded (full) */
+'logo_img_xl' => 'img/logo.png',
+'logo_img_xl_class' => 'brand-image snb-logo-full',
+
+'logo_img_alt' => 'S&B',
+'logo_img_xl_alt' => 'S&B Behavioral Health Care',
     /*
     |--------------------------------------------------------------------------
     | Authentication Logo
@@ -134,12 +139,13 @@ return [
     */
 
     'usermenu_enabled' => true,
-    'usermenu_header' => false,
-    'usermenu_header_class' => 'bg-primary',
-    'usermenu_image' => false,
-    'usermenu_desc' => false,
-    'usermenu_profile_url' => false,
+'usermenu_header' => false,
+'usermenu_header_class' => 'bg-primary',
+'usermenu_image' => false,
+'usermenu_desc' => false,
+'usermenu_profile_url' => false,
 
+    
     /*
     |--------------------------------------------------------------------------
     | Layout
@@ -190,7 +196,7 @@ return [
     |
     */
 
-    'classes_body' => 'light-mode',
+    'classes_body' => 'light-mode sidebar-no-expand',
     'classes_brand' => '',
     'classes_brand_text' => '',
     'classes_content_wrapper' => '',
@@ -257,14 +263,14 @@ return [
     */
 
     'use_route_url' => false,
-    'dashboard_url' => '/',
-    'logout_url' => 'logout',
-    'login_url' => 'login',
-    'register_url' => '',
-    'password_reset_url' => '',
-    'password_email_url' => '',
-    'profile_url' => false,
-    'disable_darkmode_routes' => false,
+'dashboard_url' => '/',
+'logout_url' => 'logout',
+'login_url' => 'login',
+'register_url' => '',
+'password_reset_url' => '',
+'password_email_url' => '',
+'profile_url' => 'profile',       // ✅ Profile goes to /profile
+'disable_darkmode_routes' => false,
 
     /*
     |--------------------------------------------------------------------------

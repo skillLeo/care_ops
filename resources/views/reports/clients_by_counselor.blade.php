@@ -114,8 +114,7 @@
 
 @section('js')
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
-    <script src="{{ asset('js/datatables-column-search.js') }}"></script>
-    <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
+     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/dataTables.buttons.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.html5.min.js"></script>
     <script src="https://cdn.datatables.net/buttons/2.4.1/js/buttons.print.min.js"></script>
@@ -136,6 +135,7 @@
                 extend: 'pdfHtml5',
                 orientation: 'landscape',
                 text: '<i class="fas fa-file-pdf"></i> PDF',
+                className: 'btn btn-secondary-brand',
                 filename: 'Clients_By_Counselor',
                 pageSize: 'LETTER',
                 exportOptions: {
@@ -263,6 +263,7 @@
             {
                 extend: 'excelHtml5',
                 text: '<i class="fas fa-file-excel"></i> Excel',
+                className: 'btn btn-secondary-brand ',
                 filename: 'Clients by Counselor ' + @json(\Carbon\Carbon::parse($selectedDate)->format('m-d-Y'))
             }]
         });
