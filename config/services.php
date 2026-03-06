@@ -17,6 +17,10 @@ return [
     'postmark' => [
         'token' => env('POSTMARK_TOKEN'),
     ],
+    'teams' => [
+        'app_id'    => env('TEAMS_APP_ID'),
+        'tenant_id' => env('TEAMS_TENANT_ID'),
+    ],
 
     'ses' => [
         'key' => env('AWS_ACCESS_KEY_ID'),
