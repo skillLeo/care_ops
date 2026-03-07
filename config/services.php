@@ -20,6 +20,7 @@ return [
     'teams' => [
         'app_id'    => env('TEAMS_APP_ID'),
         'tenant_id' => env('TEAMS_TENANT_ID'),
+        'domain'    => env('TEAMS_DOMAIN'),
     ],
 
     'ses' => [

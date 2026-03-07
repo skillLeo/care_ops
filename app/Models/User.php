@@ -9,11 +9,12 @@ use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
 use Illuminate\Notifications\Notifiable;
 use Illuminate\Support\Facades\Storage;
+use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
     /** @use HasFactory<\Database\Factories\UserFactory> */
-    use HasFactory, Notifiable;
+    use HasApiTokens, HasFactory, Notifiable;
 
     /**
      * The attributes that are mass assignable.
@@ -31,13 +32,13 @@ class User extends Authenticatable
         'avatar'
     ];
 
- public function avatarUrl(): ?string
-{
-    if (!empty($this->avatar) && Storage::disk('public')->exists($this->avatar)) {
-        return Storage::url($this->avatar);
+    public function avatarUrl(): ?string
+    {
+        if (!empty($this->avatar) && Storage::disk('public')->exists($this->avatar)) {
+            return Storage::url($this->avatar);
+        }
+        return null;
     }
-    return null;
-}
 
     /**
      * The attributes that should be hidden for serialization.
@@ -78,15 +79,29 @@ class User extends Authenticatable
         return $this->belongsTo(LevelOfCare::class, 'level_of_care');
     }
 
+    /**
+     * Check if user has a specific permission
+     * Checks both many-to-many roles and single role
+     */
     public function hasPermission($permissionName)
     {
-        if ($this->roles()->whereHas('permissions', function ($query) use ($permissionName) {
-            $query->where('name', $permissionName);
-        })->exists()) {
+        // Check through many-to-many roles first
+        $hasPermissionThroughRoles = $this->roles()
+            ->whereHas('permissions', function ($query) use ($permissionName) {
+                $query->where('name', $permissionName);
+            })
+            ->exists();
+        
+        if ($hasPermissionThroughRoles) {
             return true;
         }
 
-        return $this->role?->permissions?->contains('name', $permissionName) ?? false;
+        // Check through single role (if it's loaded as a relation)
+        if ($this->role && $this->role instanceof Role) {
+            return $this->role->permissions?->contains('name', $permissionName) ?? false;
+        }
+
+        return false;
     }
 
     public function groupNotes()
@@ -140,6 +155,4 @@ class User extends Authenticatable
     {
         return $this->belongsToMany(Position::class, 'position_user');
     }
-
-
 }

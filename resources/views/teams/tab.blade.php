@@ -18,7 +18,7 @@
 <body>
   <div class="box">
     <h2 id="title">Signing you in…</h2>
-    <p class="muted" id="subtitle">If this is opened in a normal browser, Teams SSO won't work. That's expected.</p>
+    <p class="muted" id="subtitle">Connecting to Microsoft Teams…</p>
 
     <div id="actions" style="display:none; margin-top:12px;">
       <h4>Dev fallback (browser testing)</h4>
@@ -32,28 +32,66 @@
     <pre id="log"></pre>
   </div>
 
-  <!-- Teams JS SDK (works only inside Teams) -->
-  <script src="https://res.cdn.office.net/teams-js/2.0.0/js/MicrosoftTeams.min.js"></script>
+  <!-- Teams JS SDK v2.22.0 — fixes web initialization timeout -->
+  <script src="https://res.cdn.office.net/teams-js/2.22.0/js/MicrosoftTeams.min.js"></script>
 
   <script>
-    const titleEl = document.getElementById('title');
-    const subEl = document.getElementById('subtitle');
-    const logEl = document.getElementById('log');
+    const titleEl   = document.getElementById('title');
+    const subEl     = document.getElementById('subtitle');
+    const logEl     = document.getElementById('log');
     const actionsEl = document.getElementById('actions');
-    const tokenBox = document.getElementById('tokenBox');
-    const sendBtn = document.getElementById('sendBtn');
+    const tokenBox  = document.getElementById('tokenBox');
+    const sendBtn   = document.getElementById('sendBtn');
 
     function log(msg) { logEl.textContent += msg + "\n"; }
 
     async function postToken(token) {
-      const res = await fetch('/api/auth/teams', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
-        body: JSON.stringify({ token })
+      try {
+        const res  = await fetch('/api/auth/teams', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+          body: JSON.stringify({ token })
+        });
+        const data = await res.json().catch(() => ({}));
+        log("Backend status: " + res.status);
+        log("Backend response: " + JSON.stringify(data, null, 2));
+
+        if (res.ok) {
+          titleEl.textContent = "Welcome to CareOps – Teams integration initialized ✅";
+          subEl.className     = "ok";
+          subEl.textContent   = "Signed in as: " + (data.user?.email ?? "unknown");
+        } else {
+          titleEl.textContent = "Backend error ❌";
+          subEl.className     = "err";
+          subEl.textContent   = "Error: " + (data.error ?? res.status);
+          actionsEl.style.display = 'block';
+        }
+      } catch (fetchErr) {
+        log("Fetch error: " + fetchErr.message);
+        titleEl.textContent = "Network error ❌";
+        subEl.className     = "err";
+        subEl.textContent   = fetchErr.message;
+        actionsEl.style.display = 'block';
+      }
+    }
+
+    function doGetAuthToken() {
+      log("Calling getAuthToken...");
+      microsoftTeams.authentication.getAuthToken({
+        resources: [],
+        successCallback: async (token) => {
+          log("Token acquired (len=" + token.length + ")");
+          subEl.textContent = "SSO token acquired. Sending to backend…";
+          await postToken(token);
+        },
+        failureCallback: (err) => {
+          titleEl.textContent = "SSO failed ❌";
+          subEl.className     = "err";
+          subEl.textContent   = "Error code: " + JSON.stringify(err) + " — contact IT";
+          log("getAuthToken FAILED: " + JSON.stringify(err));
+          actionsEl.style.display = 'block';
+        }
       });
-      const data = await res.json().catch(() => ({}));
-      log("Backend status: " + res.status);
-      log("Backend response: " + JSON.stringify(data, null, 2));
     }
 
     sendBtn?.addEventListener('click', async () => {
@@ -62,41 +100,31 @@
       await postToken(t);
     });
 
-    // Try Teams SSO
+    // Teams SSO
     try {
       if (!window.microsoftTeams || !microsoftTeams.app) {
-        // Not in Teams
-        titleEl.textContent = "Not running inside Microsoft Teams";
-        subEl.textContent = "Open this tab from Teams later. For now you can test backend using dev fallback.";
+        titleEl.textContent     = "Not running inside Microsoft Teams";
+        subEl.textContent       = "Open this tab from Teams. Use dev fallback to test backend.";
         actionsEl.style.display = 'block';
         log("Teams SDK not available (browser mode).");
       } else {
-        microsoftTeams.app.initialize().then(() => {
-          titleEl.textContent = "Signing you in…";
-          log("Teams SDK initialized.");
+        log("Teams SDK found. Initializing...");
 
-          microsoftTeams.authentication.getAuthToken({
-            successCallback: async (token) => {
-              titleEl.textContent = "Welcome to CareOps – Teams integration initialized";
-              subEl.className = "ok";
-              subEl.textContent = "SSO token acquired. Sending to backend…";
-              log("Token acquired (len=" + token.length + ")");
-              await postToken(token);
-            },
-            failureCallback: (err) => {
-              titleEl.textContent = "SSO failed";
-              subEl.className = "err";
-              subEl.textContent = "Error: " + err + " (contact IT)";
-              log("getAuthToken error: " + err);
-            }
-          });
+        microsoftTeams.app.initialize().then(() => {
+          log("Teams SDK initialized successfully.");
+          doGetAuthToken();
+        }).catch(initErr => {
+          // SDK timeout common in Teams web — retry getAuthToken directly
+          log("app.initialize() failed: " + initErr);
+          log("Retrying getAuthToken directly...");
+          doGetAuthToken();
         });
       }
     } catch (e) {
-      titleEl.textContent = "Error";
-      subEl.className = "err";
-      subEl.textContent = "Unexpected error (check console)";
-      log("Exception: " + (e && e.message ? e.message : e));
+      titleEl.textContent     = "Error ❌";
+      subEl.className         = "err";
+      subEl.textContent       = "Unexpected error (check console)";
+      log("Exception: " + (e?.message ?? e));
       actionsEl.style.display = 'block';
     }
   </script>
