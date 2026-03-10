@@ -2,8 +2,6 @@
 
 namespace App\Models;
 
-// use Illuminate\Contracts\Auth\MustVerifyEmail;
-
 use Carbon\Carbon;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Foundation\Auth\User as Authenticatable;
@@ -13,14 +11,8 @@ use Laravel\Sanctum\HasApiTokens;
 
 class User extends Authenticatable
 {
-    /** @use HasFactory<\Database\Factories\UserFactory> */
     use HasApiTokens, HasFactory, Notifiable;
 
-    /**
-     * The attributes that are mass assignable.
-     *
-     * @var list<string>
-     */
     protected $fillable = [
         'name',
         'short_name',
@@ -29,8 +21,12 @@ class User extends Authenticatable
         'pin',
         'role_id',
         'level_of_care',
-        'avatar'
+        'avatar',
+        'entra_oid',   // ✅ ye missing tha — isliye roles link nahi ho raha tha
     ];
+
+    // ✅ Har baar user load ho, roles + permissions bhi saath load hon
+    protected $with = ['roles.permissions', 'role.permissions'];
 
     public function avatarUrl(): ?string
     {
@@ -40,22 +36,12 @@ class User extends Authenticatable
         return null;
     }
 
-    /**
-     * The attributes that should be hidden for serialization.
-     *
-     * @var list<string>
-     */
     protected $hidden = [
         'password',
         'remember_token',
         'pin',
     ];
 
-    /**
-     * Get the attributes that should be cast.
-     *
-     * @return array<string, string>
-     */
     protected function casts(): array
     {
         return [
@@ -66,7 +52,7 @@ class User extends Authenticatable
 
     public function role()
     {
-        return $this->belongsTo(Role::class);
+        return $this->belongsTo(Role::class);  // ye hona chahiye
     }
 
     public function roles()
@@ -80,25 +66,20 @@ class User extends Authenticatable
     }
 
     /**
-     * Check if user has a specific permission
-     * Checks both many-to-many roles and single role
+     * ✅ Fixed: ab cached relations use karta hai, baar baar DB query nahi
      */
-    public function hasPermission($permissionName)
+    public function hasPermission($permissionName): bool
     {
-        // Check through many-to-many roles first
-        $hasPermissionThroughRoles = $this->roles()
-            ->whereHas('permissions', function ($query) use ($permissionName) {
-                $query->where('name', $permissionName);
-            })
-            ->exists();
-        
-        if ($hasPermissionThroughRoles) {
-            return true;
+        // Many-to-many roles se check
+        foreach ($this->roles as $role) {
+            if ($role->permissions->contains('name', $permissionName)) {
+                return true;
+            }
         }
 
-        // Check through single role (if it's loaded as a relation)
-        if ($this->role && $this->role instanceof Role) {
-            return $this->role->permissions?->contains('name', $permissionName) ?? false;
+        // role_id (single role) se check — ye main source hai
+        if ($this->role_id && $this->role instanceof \App\Models\Role) {
+            return $this->role->permissions->contains('name', $permissionName);
         }
 
         return false;
@@ -142,7 +123,6 @@ class User extends Authenticatable
     public function canDeleteRecords(): bool
     {
         $allowedEmails = config('pin.allowed_emails', []);
-
         return in_array($this->email, $allowedEmails, true);
     }
 
