@@ -20,6 +20,11 @@ return Application::configure(basePath: dirname(__DIR__))
         $middleware->appendToGroup('web', \App\Http\Middleware\EnsurePin::class);
         $middleware->appendToGroup('web', \App\Http\Middleware\EnsurePinSet::class);
         $middleware->appendToGroup('web', \App\Http\Middleware\AuditLogRequest::class);
+
+        $middleware->validateCsrfTokens(except: [
+            'api/auth/teams',
+        ]);
+
     })
     ->withExceptions(function (Exceptions $exceptions) {
         //

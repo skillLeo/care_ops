@@ -53,12 +53,17 @@ use App\Http\Controllers\ClinicalNotesController;
 use App\Http\Controllers\SubmissionDuplicateController;
 use App\Http\Controllers\UaRandomizerController;
 use App\Http\Controllers\TeamsController;
-
-
-
-
-
 use App\Http\Controllers\ProfileController;
+
+Route::get('/', function () {
+    // Return Teams Tab HTML (auto-detects if in Teams)
+    // If in Teams: shows SSO login
+    // If in web: redirects to /dashboard or /login
+    return view('teams.tab');
+})->name('home');
+
+Route::post('/api/auth/teams', [App\Http\Controllers\TeamsAuthController::class, 'authenticate'])
+    ->name('teams.auth');
 
  Route::get('/tabs/home', [TeamsController::class, 'index'])->name('tabs.home');
 
